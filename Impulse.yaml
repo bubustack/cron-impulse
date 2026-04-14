@@ -1,0 +1,103 @@
+apiVersion: catalog.bubustack.io/v1alpha1
+kind: ImpulseTemplate
+metadata:
+  name: cron
+  annotations:
+    registry.bubustack.io/maturity: experimental
+spec:
+  version: 0.1.0
+  description: |
+    A cron-based impulse that triggers StoryRuns on configurable schedules.
+    Supports multiple schedules, timezone configuration, jitter, and 
+    concurrency policies.
+  image: ghcr.io/bubustack/cron-impulse:0.1.0
+  supportedModes:
+    - deployment
+
+  configSchema:
+    type: object
+    properties:
+      schedules:
+        type: array
+        description: List of cron schedules to run.
+        required: true
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+              description: Human-readable identifier for this schedule.
+              required: true
+            description:
+              type: string
+              description: Explains what this schedule does.
+            cron:
+              type: string
+              description: |
+                Cron expression (5-field format: minute hour day-of-month month day-of-week).
+                Examples: "0 8 * * *" (8 AM daily), "*/5 * * * *" (every 5 minutes).
+                Supports descriptors like "@hourly", "@daily", "@weekly".
+              required: true
+            inputs:
+              type: object
+              description: Inputs passed to the triggered story for this schedule.
+            metadata:
+              type: object
+              additionalProperties:
+                type: string
+              description: Metadata attached to the StoryRun as annotations.
+            enabled:
+              type: boolean
+              description: Whether this schedule is active. Defaults to true.
+              default: true
+            jitter:
+              type: string
+              description: |
+                Random delay (0 to this duration) before triggering.
+                Helps spread load. Examples: "30s", "5m".
+      timezone:
+        type: string
+        description: Timezone for parsing cron expressions (IANA format). Defaults to UTC.
+        default: UTC
+      runOnStartup:
+        type: boolean
+        description: Trigger all schedules immediately on startup (useful for testing).
+        default: false
+      concurrencyPolicy:
+        type: string
+        enum:
+          - allow
+          - forbid
+          - replace
+        description: |
+          Controls behavior when a schedule fires while a previous StoryRun session is active.
+          - allow: Allow concurrent runs (default).
+          - forbid: Skip new run while previous session is active.
+          - replace: Stop previous session and start new one.
+        default: allow
+
+  execution:
+    service:
+      ports:
+        - name: health
+          protocol: TCP
+          port: 8080
+          targetPort: 8080
+    resources:
+      recommendedCpuRequest: 10m
+      recommendedMemoryRequest: 32Mi
+      recommendedCpuLimit: 100m
+      recommendedMemoryLimit: 64Mi
+    probes:
+      liveness:
+        httpGet:
+          path: /health
+          port: 8080
+        initialDelaySeconds: 5
+        periodSeconds: 10
+      readiness:
+        httpGet:
+          path: /ready
+          port: 8080
+        initialDelaySeconds: 5
+        periodSeconds: 10
