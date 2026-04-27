@@ -3,7 +3,7 @@ module github.com/bubustack/cron-impulse
 go 1.26.2
 
 require (
-	github.com/bubustack/bobrapet v0.1.9
+	github.com/bubustack/bobrapet v0.1.12
 	github.com/bubustack/bubu-sdk-go v0.1.4
 	github.com/robfig/cron/v3 v3.0.1
 	k8s.io/apimachinery v0.35.4
