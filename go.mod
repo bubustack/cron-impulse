@@ -6,7 +6,7 @@ require (
 	github.com/bubustack/bobrapet v0.1.13
 	github.com/bubustack/bubu-sdk-go v0.1.5
 	github.com/robfig/cron/v3 v3.0.1
-	k8s.io/apimachinery v0.36.0
+	k8s.io/apimachinery v0.36.1
 )
 
 require (
